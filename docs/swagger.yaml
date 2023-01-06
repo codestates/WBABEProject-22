@@ -1,0 +1,737 @@
+basePath: /v1
+definitions:
+  dto.OrderCreate:
+    properties:
+      cart:
+        additionalProperties:
+          type: integer
+        type: object
+      user:
+        $ref: '#/definitions/model.User'
+    required:
+    - cart
+    - user
+    type: object
+  dto.OrderUpdateCart:
+    properties:
+      cart:
+        additionalProperties:
+          type: integer
+        type: object
+    required:
+    - cart
+    type: object
+  dto.OrderUpdateStatus:
+    properties:
+      status:
+        type: string
+    required:
+    - status
+    type: object
+  dto.ProductCreate:
+    properties:
+      canOrder:
+        example: true
+        type: boolean
+      code:
+        example: bc01
+        type: string
+      limit:
+        example: 100
+        type: integer
+      name:
+        example: Chicken burrito
+        type: string
+      origin:
+        example: Mexico
+        type: string
+      price:
+        example: 9.99
+        type: number
+    required:
+    - canOrder
+    - code
+    - limit
+    - name
+    - origin
+    - price
+    type: object
+  dto.ReviewOrderCreate:
+    properties:
+      comment:
+        example: Incredible!
+        type: string
+      productReviews:
+        items:
+          $ref: '#/definitions/model.ReviewProduct'
+        type: array
+      rating:
+        example: 4.5
+        maximum: 5
+        minimum: 0
+        type: number
+    required:
+    - rating
+    type: object
+  model.Address:
+    properties:
+      administrativeArea:
+        example: Seoul
+        type: string
+      countryCode:
+        example: KOR
+        type: string
+      dependentLocality:
+        type: string
+      locality:
+        example: Jongno-gu
+        type: string
+      postalCode:
+        example: "03154"
+        type: string
+      streetAddress:
+        example: Jong-ro 1
+        type: string
+    required:
+    - administrativeArea
+    - countryCode
+    - locality
+    - postalCode
+    - streetAddress
+    type: object
+  model.Order:
+    properties:
+      cart:
+        additionalProperties:
+          type: integer
+        type: object
+      createdAt:
+        type: integer
+      id:
+        type: string
+      status:
+        type: string
+      statusInt:
+        type: integer
+      user:
+        $ref: '#/definitions/model.User'
+    type: object
+  model.Product:
+    properties:
+      canOrder:
+        type: boolean
+      canView:
+        type: boolean
+      code:
+        type: string
+      createdAt:
+        type: integer
+      limit:
+        type: integer
+      name:
+        type: string
+      origin:
+        type: string
+      price:
+        type: number
+    type: object
+  model.ReviewOrder:
+    properties:
+      comment:
+        type: string
+      orderId:
+        type: string
+      productReviews:
+        items:
+          $ref: '#/definitions/model.ReviewProduct'
+        type: array
+      rating:
+        type: number
+      username:
+        type: string
+    type: object
+  model.ReviewProduct:
+    properties:
+      comment:
+        example: Good!
+        type: string
+      productCode:
+        example: bc01
+        type: string
+      recommend:
+        example: false
+        type: boolean
+    required:
+    - productCode
+    - recommend
+    type: object
+  model.User:
+    properties:
+      address:
+        $ref: '#/definitions/model.Address'
+      email:
+        example: abc1@gmail.com
+        type: string
+      phone:
+        example: "+821011112222"
+        type: string
+      username:
+        example: abc1
+        maxLength: 30
+        type: string
+    required:
+    - address
+    - email
+    - phone
+    - username
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: A simple online ordering system written in Go
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Online ordering system
+  version: "1.0"
+paths:
+  /customer/{username}/orders/active:
+    get:
+      consumes:
+      - application/json
+      description: Show all orders currently active by username
+      parameters:
+      - description: Username
+        in: path
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Order'
+            type: array
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Get all active orders
+      tags:
+      - orders
+  /customer/{username}/orders/history:
+    get:
+      consumes:
+      - application/json
+      description: Show all order history by username
+      parameters:
+      - description: Username
+        in: path
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Order'
+            type: array
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Get all past orders
+      tags:
+      - orders
+  /customer/orders:
+    post:
+      consumes:
+      - application/json
+      description: Add an order document to the orders collection
+      parameters:
+      - description: A new order to submit
+        in: body
+        name: order
+        required: true
+        schema:
+          $ref: '#/definitions/dto.OrderCreate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Order'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Create a new order
+      tags:
+      - orders
+  /customer/orders/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Show an order by order ID
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Order'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Get an order
+      tags:
+      - orders
+  /customer/orders/{id}/cart:
+    delete:
+      consumes:
+      - application/json
+      description: Remove order items
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Items to delete
+        in: body
+        name: order
+        required: true
+        schema:
+          items:
+            type: string
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Order'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Delete order items
+      tags:
+      - orders
+    put:
+      consumes:
+      - application/json
+      description: Modify order items
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New items to order
+        in: body
+        name: order
+        required: true
+        schema:
+          $ref: '#/definitions/dto.OrderUpdateCart'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Order'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Update order items
+      tags:
+      - orders
+  /customer/orders/{id}/status:
+    get:
+      consumes:
+      - application/json
+      description: Show the current status of an order by order ID
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Get order status
+      tags:
+      - orders
+  /customer/products:
+    get:
+      consumes:
+      - application/json
+      description: List all products available to customers
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Product'
+            type: array
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Get all products
+      tags:
+      - products
+  /customer/products/{code}:
+    get:
+      consumes:
+      - application/json
+      description: Show a product
+      parameters:
+      - description: The product to show
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Product'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Get a product
+      tags:
+      - products
+  /customer/reviews/orders/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Add a review document to the reviews collection
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: A new review to add
+        in: body
+        name: review
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ReviewOrderCreate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.ReviewOrder'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Create a new review
+      tags:
+      - reviews
+  /customer/reviews/products/{code}:
+    get:
+      consumes:
+      - application/json
+      description: Show a review of a product
+      parameters:
+      - description: Product code
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.ReviewProduct'
+            type: array
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Get a review of a product
+      tags:
+      - reviews
+  /provider/orders:
+    get:
+      consumes:
+      - application/json
+      description: List all orders
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Order'
+            type: array
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Get all orders
+      tags:
+      - orders
+  /provider/orders/{id}/status:
+    put:
+      consumes:
+      - application/json
+      description: Modify order status
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated order status
+        in: body
+        name: order
+        required: true
+        schema:
+          $ref: '#/definitions/dto.OrderUpdateStatus'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Order'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Update order status
+      tags:
+      - orders
+  /provider/products:
+    post:
+      consumes:
+      - application/json
+      description: Add a product document to the products collection
+      parameters:
+      - description: A new product to add
+        in: body
+        name: newProduct
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ProductCreate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Product'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Create a new product
+      tags:
+      - products
+  /provider/products/{code}:
+    delete:
+      consumes:
+      - application/json
+      description: 'Remove an existing product: toggle canView flag to false'
+      parameters:
+      - description: The product to delete
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Product'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Delete a product
+      tags:
+      - products
+    put:
+      consumes:
+      - application/json
+      description: Modify an existing product
+      parameters:
+      - description: Product code
+        in: path
+        name: code
+        required: true
+        type: string
+      - description: The product to modify
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/model.Product'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Product'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Update a product
+      tags:
+      - products
+  /provider/reviews/orders:
+    get:
+      consumes:
+      - application/json
+      description: List all reviews
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.ReviewOrder'
+            type: array
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Get all reviews
+      tags:
+      - reviews
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"

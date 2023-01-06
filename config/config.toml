@@ -1,0 +1,16 @@
+[server]
+mode = "dev"
+port = ":8080"
+
+[db]
+host = "mongodb://localhost:27017"
+name = "oos"
+# user = "user"
+# pass = "user!@"
+
+[log]
+level = "debug" # debug or info
+fpath = "./logs/oos" # path to generated log files
+msize = 2_000 # max file size in megabytes
+mage = 7 # max file age in days
+mbackup = 5 # max number of log files
