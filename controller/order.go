@@ -386,3 +386,12 @@ func DeleteOrderItems(c *gin.Context) {
 	SetData(result).
 	SendJSON(c)
 }
+
+/* [코드리뷰]
+ * request 요청에서 발생하는 timeout 처리를 잘 해주셨습니다.
+ * request 요청에 대한 다양한 상황을 미리 예측하여 방어적으로 코드를 구현해주시는 방식은
+ * 보다 견고한 코드를 만들 수 있는 좋은 방법입니다.
+ * 들어오는 api request에 대해서 user validation 코드를 넣어보시는 건 어떨까요?
+ * server에서는 항상 client를 의심하는 방어적 코딩 스타일을 수행해야 합니다.
+ * 주문자와, 피주문자의 타입을 구분하여 주문자가 피주문자의 api를 요청할 수 없게끔 만들어보시는 방법도 추천드립니다.
+ */
