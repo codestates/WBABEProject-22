@@ -21,18 +21,18 @@ func ConnectDB(cfg *config.Config) {
 	cf := cfg.DB
 	uri := cf["host"]
 	databaseName := cf["name"]
-	
+
 	DB = getDatabase(uri)
-	
+
 	ProductCollection = GetCollection(DB, databaseName, "products")
 	OrderCollection = GetCollection(DB, databaseName, "orders")
 	ReviewCollection = GetCollection(DB, databaseName, "reviews")
-	
+
 	// Product codes should be unique.
 	_, err := ProductCollection.Indexes().CreateOne(
 		context.Background(),
 		mongo.IndexModel{
-			Keys:    bson.D{{Key: "code", Value: 1}},
+			Keys:    bson.D{{Key: "productquery.productcreate.code", Value: 1}},
 			Options: options.Index().SetUnique(true),
 		},
 	)
@@ -42,21 +42,19 @@ func ConnectDB(cfg *config.Config) {
 }
 
 func getDatabase(uri string) *mongo.Client {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
 	client, err := mongo.NewClient(options.Client().ApplyURI(uri))
 	if err != nil {
 		panic(err)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	err = client.Connect(ctx)
-	if err != nil {
+	if err = client.Connect(ctx); err != nil {
 		panic(err)
 	}
 
-	err = client.Ping(ctx, nil)
-	if err != nil {
+	if err = client.Ping(ctx, nil); err != nil {
 		panic(err)
 	}
 

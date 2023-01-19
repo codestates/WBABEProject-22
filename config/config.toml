@@ -5,8 +5,6 @@ port = ":8080"
 [db]
 host = "mongodb://localhost:27017"
 name = "oos"
-# user = "user"
-# pass = "user!@"
 
 [log]
 level = "debug" # debug or info

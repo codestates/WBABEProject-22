@@ -2,38 +2,38 @@ package dto
 
 import "github.com/gin-gonic/gin"
 
-var Resp Response
+var Response HTTPResponse
 
-type Response struct {
-	Code    int         `json:"code"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
+type HTTPResponse struct {
+	Code int         `json:"code"`
+	Text string      `json:"text"`
+	Data interface{} `json:"data"`
 }
 
-func (response Response) SetCode(status int) Response {
-	response.Code = status
+func (response HTTPResponse) SetCode(statusCode int) HTTPResponse {
+	response.Code = statusCode
 	return response
 }
 
-func (response Response) SetMessage(message string) Response {
-	response.Message = message
+func (response HTTPResponse) SetText(statusMessage string) HTTPResponse {
+	response.Text = statusMessage
 	return response
 }
 
-func (response Response) SetData(data interface{}) Response {
-	response.Data = data
+func (response HTTPResponse) SetData(rawResponse interface{}) HTTPResponse {
+	response.Data = rawResponse
 	return response
 }
 
-func (response Response) SendJSON(c *gin.Context) {
+func (response HTTPResponse) SendJSON(c *gin.Context) {
 	c.JSON(response.Code, response)
 }
 
-func (response Response) SendIndentedJSON(c *gin.Context) {
+func (response HTTPResponse) SendIndentedJSON(c *gin.Context) {
 	c.IndentedJSON(response.Code, response)
 }
 
-func (response Response) AbortWithStatusJSON(c *gin.Context) {
+func (response HTTPResponse) AbortWithStatusJSON(c *gin.Context) {
 	c.AbortWithStatusJSON(response.Code, response)
 }
 

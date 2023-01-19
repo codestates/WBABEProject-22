@@ -23,40 +23,46 @@ import (
 //	@Failure		404		{object}	error
 //	@Failure		500		{object}	error
 //	@Router			/customer/reviews/orders/{id} [post]
+//	@Security		ApiKeyAuth
 func CreateReview(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	// HTTP request
-	orderId := c.Param("id")
+	orderID := c.Param("id")
 
 	var review dto.ReviewOrderCreate
 	err := c.BindJSON(&review)
 	if err != nil {
-		panic(err)
+		dto.Response.
+			SetCode(http.StatusBadRequest).
+			SetText(http.StatusText(http.StatusBadRequest)).
+			SetData(err.Error()).
+			AbortWithStatusJSON(c)
+		return
 	}
 
 	// Business logic
-	result, err := service.CreateReview(ctx, orderId, review)
+	result, err := service.CreateReview(ctx, orderID, review)
 	if err != nil {
-		dto.Resp.
+		dto.Response.
 			SetCode(http.StatusInternalServerError).
-			SetMessage(http.StatusText(http.StatusInternalServerError)).
+			SetText(http.StatusText(http.StatusInternalServerError)).
 			SetData(err.Error()).
 			SendJSON(c)
 		return
 	}
 
 	// HTTP response
-	dto.Resp.
+	dto.Response.
 		SetCode(http.StatusCreated).
-		SetMessage(http.StatusText(http.StatusCreated)).
+		SetText(http.StatusText(http.StatusCreated)).
 		SetData(result).
 		SendJSON(c)
 }
 
-//	@Summary		Get all reviews
-//	@Description	List all reviews
+//	@Summary		List all reviews
+//	@Description	Show all reviews
 //	@Tags			reviews
 //	@Accept			json
 //	@Produce		json
@@ -65,31 +71,32 @@ func CreateReview(c *gin.Context) {
 //	@Failure		404	{object}	error
 //	@Failure		500	{object}	error
 //	@Router			/provider/reviews/orders [get]
-func GetReviews(c *gin.Context) {
+//	@Security		ApiKeyAuth
+func ListReviews(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	// Business logic
-	result, err := service.GetReviews(ctx)
+	result, err := service.ListReviews(ctx)
 	if err != nil {
-		dto.Resp.
+		dto.Response.
 			SetCode(http.StatusInternalServerError).
-			SetMessage(http.StatusText(http.StatusInternalServerError)).
+			SetText(http.StatusText(http.StatusInternalServerError)).
 			SetData(err.Error()).
 			SendJSON(c)
 		return
 	}
 
 	// HTTP response
-	dto.Resp.
+	dto.Response.
 		SetCode(http.StatusOK).
-		SetMessage(http.StatusText(http.StatusOK)).
+		SetText(http.StatusText(http.StatusOK)).
 		SetData(result).
 		SendJSON(c)
 }
 
-//	@Summary		Get a review of a product
-//	@Description	Show a review of a product
+//	@Summary		List all reviews of a product
+//	@Description	Show all reviews of a product
 //	@Tags			reviews
 //	@Accept			json
 //	@Produce		json
@@ -99,7 +106,8 @@ func GetReviews(c *gin.Context) {
 //	@Failure		404		{object}	error
 //	@Failure		500		{object}	error
 //	@Router			/customer/reviews/products/{code} [get]
-func GetReview(c *gin.Context) {
+//	@Security		ApiKeyAuth
+func ListReviewsProduct(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -107,20 +115,20 @@ func GetReview(c *gin.Context) {
 	productCode := c.Param("code")
 
 	// Business logic
-	result, err := service.GetReview(ctx, productCode)
+	result, err := service.ListReviewsProduct(ctx, productCode)
 	if err != nil {
-		dto.Resp.
+		dto.Response.
 			SetCode(http.StatusInternalServerError).
-			SetMessage(http.StatusText(http.StatusInternalServerError)).
+			SetText(http.StatusText(http.StatusInternalServerError)).
 			SetData(err.Error()).
 			SendJSON(c)
 		return
 	}
 
 	// HTTP response
-	dto.Resp.
+	dto.Response.
 		SetCode(http.StatusOK).
-		SetMessage(http.StatusText(http.StatusOK)).
+		SetText(http.StatusText(http.StatusOK)).
 		SetData(result).
 		SendJSON(c)
 }

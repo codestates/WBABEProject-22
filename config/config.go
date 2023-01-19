@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/pelletier/go-toml/v2"
@@ -24,21 +23,20 @@ type Config struct {
 	}
 }
 
-func GetConfig(fpath string) *Config {
-	c := new(Config)
+func GetConfig(fpath string) (*Config, error) {
+	cfg := new(Config)
 
-	if file, err := os.Open(fpath); err != nil {
-		panic(err)
-	} else {
-		defer file.Close()
-		if err := toml.NewDecoder(file).Decode(c); err != nil {
-			panic(err)
-		} else {
-			fmt.Println(c)
-		}
+	file, err := os.Open(fpath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	if err := toml.NewDecoder(file).Decode(cfg); err != nil {
+		return nil, err
 	}
 
-	return c
+	return cfg, nil
 }
 
 // References

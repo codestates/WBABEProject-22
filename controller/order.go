@@ -22,6 +22,7 @@ import (
 //	@Failure		404		{object}	error
 //	@Failure		500		{object}	error
 //	@Router			/customer/orders [post]
+//	@Security		ApiKeyAuth
 func CreateOrder(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -30,35 +31,35 @@ func CreateOrder(c *gin.Context) {
 	var order dto.OrderCreate
 	err := c.BindJSON(&order)
 	if err != nil {
-		dto.Resp.
-		SetCode(http.StatusBadRequest).
-		SetMessage(http.StatusText(http.StatusBadRequest)).
-		SetData(err.Error()).
-		AbortWithStatusJSON(c)
+		dto.Response.
+			SetCode(http.StatusBadRequest).
+			SetText(http.StatusText(http.StatusBadRequest)).
+			SetData(err.Error()).
+			AbortWithStatusJSON(c)
 		return
 	}
 
 	// Business logic
 	result, err := service.CreateOrder(ctx, order)
 	if err != nil {
-		dto.Resp.
-		SetCode(http.StatusInternalServerError).
-		SetMessage(http.StatusText(http.StatusInternalServerError)).
-		SetData(err.Error()).
-		SendJSON(c)
+		dto.Response.
+			SetCode(http.StatusInternalServerError).
+			SetText(http.StatusText(http.StatusInternalServerError)).
+			SetData(err.Error()).
+			SendJSON(c)
 		return
 	}
 
 	// HTTP response
-	dto.Resp.
-	SetCode(http.StatusCreated).
-	SetMessage(http.StatusText(http.StatusCreated)).
-	SetData(result).
-	SendJSON(c)
+	dto.Response.
+		SetCode(http.StatusCreated).
+		SetText(http.StatusText(http.StatusCreated)).
+		SetData(result).
+		SendJSON(c)
 }
 
-//	@Summary		Get all orders
-//	@Description	List all orders
+//	@Summary		List all orders
+//	@Description	Show all orders
 //	@Tags			orders
 //	@Accept			json
 //	@Produce		json
@@ -67,30 +68,31 @@ func CreateOrder(c *gin.Context) {
 //	@Failure		404	{object}	error
 //	@Failure		500	{object}	error
 //	@Router			/provider/orders [get]
-func GetOrders(c *gin.Context) {
+//	@Security		ApiKeyAuth
+func ListOrders(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	// Business logic
-	result, err := service.GetOrders(ctx)
+	result, err := service.ListOrders(ctx)
 	if err != nil {
-		dto.Resp.
-		SetCode(http.StatusInternalServerError).
-		SetMessage(http.StatusText(http.StatusInternalServerError)).
-		SetData(err.Error()).
-		SendJSON(c)
+		dto.Response.
+			SetCode(http.StatusInternalServerError).
+			SetText(http.StatusText(http.StatusInternalServerError)).
+			SetData(err.Error()).
+			SendJSON(c)
 		return
 	}
 
 	// HTTP response
-	dto.Resp.
-	SetCode(http.StatusOK).
-	SetMessage(http.StatusText(http.StatusOK)).
-	SetData(result).
-	SendJSON(c)
+	dto.Response.
+		SetCode(http.StatusOK).
+		SetText(http.StatusText(http.StatusOK)).
+		SetData(result).
+		SendJSON(c)
 }
 
-//	@Summary		Get all active orders
+//	@Summary		List all active orders
 //	@Description	Show all orders currently active by username
 //	@Tags			orders
 //	@Accept			json
@@ -101,7 +103,8 @@ func GetOrders(c *gin.Context) {
 //	@Failure		500			{object}	error
 //	@Param			username	path		string	true	"Username"
 //	@Router			/customer/{username}/orders/active [get]
-func GetOrdersActive(c *gin.Context) {
+//	@Security		ApiKeyAuth
+func ListOrdersActive(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -109,25 +112,25 @@ func GetOrdersActive(c *gin.Context) {
 	username := c.Param("username")
 
 	// Business logic
-	result, err := service.GetOrdersActive(ctx, username)
+	result, err := service.ListOrdersActive(ctx, username)
 	if err != nil {
-		dto.Resp.
-		SetCode(http.StatusInternalServerError).
-		SetMessage(http.StatusText(http.StatusInternalServerError)).
-		SetData(err.Error()).
-		SendJSON(c)
+		dto.Response.
+			SetCode(http.StatusInternalServerError).
+			SetText(http.StatusText(http.StatusInternalServerError)).
+			SetData(err.Error()).
+			SendJSON(c)
 		return
 	}
 
 	// HTTP response
-	dto.Resp.
-	SetCode(http.StatusOK).
-	SetMessage(http.StatusText(http.StatusOK)).
-	SetData(result).
-	SendJSON(c)
+	dto.Response.
+		SetCode(http.StatusOK).
+		SetText(http.StatusText(http.StatusOK)).
+		SetData(result).
+		SendJSON(c)
 }
 
-//	@Summary		Get all past orders
+//	@Summary		List all past orders
 //	@Description	Show all order history by username
 //	@Tags			orders
 //	@Accept			json
@@ -138,7 +141,8 @@ func GetOrdersActive(c *gin.Context) {
 //	@Failure		500			{object}	error
 //	@Param			username	path		string	true	"Username"
 //	@Router			/customer/{username}/orders/history [get]
-func GetOrdersHistory(c *gin.Context) {
+//	@Security		ApiKeyAuth
+func ListOrdersHistory(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -146,22 +150,22 @@ func GetOrdersHistory(c *gin.Context) {
 	username := c.Param("username")
 
 	// Business logic
-	result, err := service.GetOrdersHistory(ctx, username)
+	result, err := service.ListOrdersHistory(ctx, username)
 	if err != nil {
-		dto.Resp.
-		SetCode(http.StatusInternalServerError).
-		SetMessage(http.StatusText(http.StatusInternalServerError)).
-		SetData(err.Error()).
-		SendJSON(c)
+		dto.Response.
+			SetCode(http.StatusInternalServerError).
+			SetText(http.StatusText(http.StatusInternalServerError)).
+			SetData(err.Error()).
+			SendJSON(c)
 		return
 	}
 
 	// HTTP response
-	dto.Resp.
-	SetCode(http.StatusOK).
-	SetMessage(http.StatusText(http.StatusOK)).
-	SetData(result).
-	SendJSON(c)
+	dto.Response.
+		SetCode(http.StatusOK).
+		SetText(http.StatusText(http.StatusOK)).
+		SetData(result).
+		SendJSON(c)
 }
 
 //	@Summary		Get an order
@@ -175,33 +179,32 @@ func GetOrdersHistory(c *gin.Context) {
 //	@Failure		500	{object}	error
 //	@Param			id	path		string	true	"Order ID"
 //	@Router			/customer/orders/{id} [get]
+//	@Security		ApiKeyAuth
 func GetOrder(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	// HTTP request
-	orderId := c.Param("id")
+	orderID := c.Param("id")
 
 	// Business logic
-	result, err := service.GetOrder(ctx, orderId)
+	result, err := service.GetOrder(ctx, orderID)
 	if err != nil {
-		dto.Resp.
-		SetCode(http.StatusInternalServerError).
-		SetMessage(http.StatusText(http.StatusInternalServerError)).
-		SetData(err.Error()).
-		SendJSON(c)
+		dto.Response.
+			SetCode(http.StatusInternalServerError).
+			SetText(http.StatusText(http.StatusInternalServerError)).
+			SetData(err.Error()).
+			SendJSON(c)
 		return
 	}
 
 	// HTTP response
-	dto.Resp.
-	SetCode(http.StatusOK).
-	SetMessage(http.StatusText(http.StatusOK)).
-	SetData(result).
-	SendJSON(c)
+	dto.Response.
+		SetCode(http.StatusOK).
+		SetText(http.StatusText(http.StatusOK)).
+		SetData(result).
+		SendJSON(c)
 }
-
-
 
 //	@Summary		Get order status
 //	@Description	Show the current status of an order by order ID
@@ -214,30 +217,31 @@ func GetOrder(c *gin.Context) {
 //	@Failure		500	{object}	error
 //	@Param			id	path		string	true	"Order ID"
 //	@Router			/customer/orders/{id}/status [get]
+//	@Security		ApiKeyAuth
 func GetOrderStatus(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	// HTTP request
-	orderId := c.Param("id")
+	orderID := c.Param("id")
 
 	// Business logic
-	result, err := service.GetOrderStatus(ctx, orderId)
+	result, err := service.GetOrderStatus(ctx, orderID)
 	if err != nil {
-		dto.Resp.
-		SetCode(http.StatusInternalServerError).
-		SetMessage(http.StatusText(http.StatusInternalServerError)).
-		SetData(err.Error()).
-		SendJSON(c)
+		dto.Response.
+			SetCode(http.StatusInternalServerError).
+			SetText(http.StatusText(http.StatusInternalServerError)).
+			SetData(err.Error()).
+			SendJSON(c)
 		return
 	}
 
 	// HTTP response
-	dto.Resp.
-	SetCode(http.StatusOK).
-	SetMessage(http.StatusText(http.StatusOK)).
-	SetData(result).
-	SendJSON(c)
+	dto.Response.
+		SetCode(http.StatusOK).
+		SetText(http.StatusText(http.StatusOK)).
+		SetData(result).
+		SendJSON(c)
 }
 
 //	@Summary		Update order status
@@ -252,41 +256,42 @@ func GetOrderStatus(c *gin.Context) {
 //	@Failure		404		{object}	error
 //	@Failure		500		{object}	error
 //	@Router			/provider/orders/{id}/status [put]
+//	@Security		ApiKeyAuth
 func UpdateOrderStatus(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	// HTTP request
-	orderId := c.Param("id")
+	orderID := c.Param("id")
 
 	var order dto.OrderUpdateStatus
 	err := c.BindJSON(&order)
 	if err != nil {
-		dto.Resp.
-		SetCode(http.StatusBadRequest).
-		SetMessage(http.StatusText(http.StatusBadRequest)).
-		SetData(err.Error()).
-		AbortWithStatusJSON(c)
+		dto.Response.
+			SetCode(http.StatusBadRequest).
+			SetText(http.StatusText(http.StatusBadRequest)).
+			SetData(err.Error()).
+			AbortWithStatusJSON(c)
 		return
 	}
 
 	// Business logic
-	result, err := service.UpdateOrderStatus(ctx, orderId, order)
+	result, err := service.UpdateOrderStatus(ctx, orderID, order)
 	if err != nil {
-		dto.Resp.
-		SetCode(http.StatusInternalServerError).
-		SetMessage(http.StatusText(http.StatusInternalServerError)).
-		SetData(err.Error()).
-		SendJSON(c)
+		dto.Response.
+			SetCode(http.StatusInternalServerError).
+			SetText(http.StatusText(http.StatusInternalServerError)).
+			SetData(err.Error()).
+			SendJSON(c)
 		return
 	}
 
 	// HTTP response
-	dto.Resp.
-	SetCode(http.StatusOK).
-	SetMessage(http.StatusText(http.StatusOK)).
-	SetData(result).
-	SendJSON(c)
+	dto.Response.
+		SetCode(http.StatusOK).
+		SetText(http.StatusText(http.StatusOK)).
+		SetData(result).
+		SendJSON(c)
 }
 
 //	@Summary		Update order items
@@ -301,41 +306,42 @@ func UpdateOrderStatus(c *gin.Context) {
 //	@Failure		404		{object}	error
 //	@Failure		500		{object}	error
 //	@Router			/customer/orders/{id}/cart [put]
+//	@Security		ApiKeyAuth
 func UpdateOrderItems(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	// HTTP request
-	orderId := c.Param("id")
+	orderID := c.Param("id")
 
 	var order dto.OrderUpdateCart
 	err := c.BindJSON(&order)
 	if err != nil {
-		dto.Resp.
-		SetCode(http.StatusBadRequest).
-		SetMessage(http.StatusText(http.StatusBadRequest)).
-		SetData(err.Error()).
-		AbortWithStatusJSON(c)
+		dto.Response.
+			SetCode(http.StatusBadRequest).
+			SetText(http.StatusText(http.StatusBadRequest)).
+			SetData(err.Error()).
+			AbortWithStatusJSON(c)
 		return
 	}
 
 	// Business logic
-	result, err := service.UpdateOrderItems(ctx, orderId, order)
+	result, err := service.UpdateOrderItems(ctx, orderID, order)
 	if err != nil {
-		dto.Resp.
-		SetCode(http.StatusInternalServerError).
-		SetMessage(http.StatusText(http.StatusInternalServerError)).
-		SetData(err.Error()).
-		SendJSON(c)
+		dto.Response.
+			SetCode(http.StatusInternalServerError).
+			SetText(http.StatusText(http.StatusInternalServerError)).
+			SetData(err.Error()).
+			SendJSON(c)
 		return
 	}
 
 	// HTTP response
-	dto.Resp.
-	SetCode(http.StatusOK).
-	SetMessage(http.StatusText(http.StatusOK)).
-	SetData(result).
-	SendJSON(c)
+	dto.Response.
+		SetCode(http.StatusOK).
+		SetText(http.StatusText(http.StatusOK)).
+		SetData(result).
+		SendJSON(c)
 }
 
 //	@Summary		Delete order items
@@ -350,39 +356,40 @@ func UpdateOrderItems(c *gin.Context) {
 //	@Failure		404		{object}	error
 //	@Failure		500		{object}	error
 //	@Router			/customer/orders/{id}/cart [delete]
+//	@Security		ApiKeyAuth
 func DeleteOrderItems(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	
+
 	// HTTP request
-	orderId := c.Param("id")
+	orderID := c.Param("id")
 
 	var products []string
 	err := c.BindJSON(&products)
 	if err != nil {
-		dto.Resp.
-		SetCode(http.StatusBadRequest).
-		SetMessage(http.StatusText(http.StatusBadRequest)).
-		SetData(err.Error()).
-		AbortWithStatusJSON(c)
+		dto.Response.
+			SetCode(http.StatusBadRequest).
+			SetText(http.StatusText(http.StatusBadRequest)).
+			SetData(err.Error()).
+			AbortWithStatusJSON(c)
 		return
 	}
 
 	// Business logic
-	result, err := service.DeleteOrderItems(ctx, orderId, products)
+	result, err := service.DeleteOrderItems(ctx, orderID, products)
 	if err != nil {
-		dto.Resp.
-		SetCode(http.StatusInternalServerError).
-		SetMessage(http.StatusText(http.StatusInternalServerError)).
-		SetData(err.Error()).
-		SendJSON(c)
+		dto.Response.
+			SetCode(http.StatusInternalServerError).
+			SetText(http.StatusText(http.StatusInternalServerError)).
+			SetData(err.Error()).
+			SendJSON(c)
 		return
 	}
 
 	// HTTP response
-	dto.Resp.
-	SetCode(http.StatusOK).
-	SetMessage(http.StatusText(http.StatusOK)).
-	SetData(result).
-	SendJSON(c)
+	dto.Response.
+		SetCode(http.StatusOK).
+		SetText(http.StatusText(http.StatusOK)).
+		SetData(result).
+		SendJSON(c)
 }

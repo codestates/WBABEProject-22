@@ -20,8 +20,61 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/account/login/{role}": {
+            "post": {
+                "description": "Authenticate to get access token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounts"
+                ],
+                "summary": "JWT login",
+                "parameters": [
+                    {
+                        "enum": [
+                            "customer",
+                            "provider"
+                        ],
+                        "type": "string",
+                        "description": "User role (permission or scope)",
+                        "name": "role",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Token"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
         "/customer/orders": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Add an order document to the orders collection",
                 "consumes": [
                     "application/json"
@@ -68,6 +121,11 @@ const docTemplate = `{
         },
         "/customer/orders/{id}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Show an order by order ID",
                 "consumes": [
                     "application/json"
@@ -112,6 +170,11 @@ const docTemplate = `{
         },
         "/customer/orders/{id}/cart": {
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Modify order items",
                 "consumes": [
                     "application/json"
@@ -163,6 +226,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Remove order items",
                 "consumes": [
                     "application/json"
@@ -219,6 +287,11 @@ const docTemplate = `{
         },
         "/customer/orders/{id}/status": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Show the current status of an order by order ID",
                 "consumes": [
                     "application/json"
@@ -263,7 +336,12 @@ const docTemplate = `{
         },
         "/customer/products": {
             "get": {
-                "description": "List all products available to customers",
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Show all products available to customers",
                 "consumes": [
                     "application/json"
                 ],
@@ -273,14 +351,29 @@ const docTemplate = `{
                 "tags": [
                     "products"
                 ],
-                "summary": "Get all products",
+                "summary": "List all products",
+                "parameters": [
+                    {
+                        "enum": [
+                            "ratings",
+                            "reorders",
+                            "likes",
+                            "time"
+                        ],
+                        "type": "string",
+                        "description": "Parameter used to sort products",
+                        "name": "sort",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/model.Product"
+                                "$ref": "#/definitions/model.ProductView"
                             }
                         }
                     },
@@ -301,6 +394,11 @@ const docTemplate = `{
         },
         "/customer/products/{code}": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Show a product",
                 "consumes": [
                     "application/json"
@@ -325,7 +423,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.Product"
+                            "$ref": "#/definitions/model.ProductView"
                         }
                     },
                     "400": {
@@ -345,6 +443,11 @@ const docTemplate = `{
         },
         "/customer/reviews/orders/{id}": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Add a review document to the reviews collection",
                 "consumes": [
                     "application/json"
@@ -398,7 +501,12 @@ const docTemplate = `{
         },
         "/customer/reviews/products/{code}": {
             "get": {
-                "description": "Show a review of a product",
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Show all reviews of a product",
                 "consumes": [
                     "application/json"
                 ],
@@ -408,7 +516,7 @@ const docTemplate = `{
                 "tags": [
                     "reviews"
                 ],
-                "summary": "Get a review of a product",
+                "summary": "List all reviews of a product",
                 "parameters": [
                     {
                         "type": "string",
@@ -445,6 +553,11 @@ const docTemplate = `{
         },
         "/customer/{username}/orders/active": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Show all orders currently active by username",
                 "consumes": [
                     "application/json"
@@ -455,7 +568,7 @@ const docTemplate = `{
                 "tags": [
                     "orders"
                 ],
-                "summary": "Get all active orders",
+                "summary": "List all active orders",
                 "parameters": [
                     {
                         "type": "string",
@@ -492,6 +605,11 @@ const docTemplate = `{
         },
         "/customer/{username}/orders/history": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Show all order history by username",
                 "consumes": [
                     "application/json"
@@ -502,7 +620,7 @@ const docTemplate = `{
                 "tags": [
                     "orders"
                 ],
-                "summary": "Get all past orders",
+                "summary": "List all past orders",
                 "parameters": [
                     {
                         "type": "string",
@@ -539,7 +657,12 @@ const docTemplate = `{
         },
         "/provider/orders": {
             "get": {
-                "description": "List all orders",
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Show all orders",
                 "consumes": [
                     "application/json"
                 ],
@@ -549,7 +672,7 @@ const docTemplate = `{
                 "tags": [
                     "orders"
                 ],
-                "summary": "Get all orders",
+                "summary": "List all orders",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -577,6 +700,11 @@ const docTemplate = `{
         },
         "/provider/orders/{id}/status": {
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Modify order status",
                 "consumes": [
                     "application/json"
@@ -630,6 +758,11 @@ const docTemplate = `{
         },
         "/provider/products": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Add a product document to the products collection",
                 "consumes": [
                     "application/json"
@@ -644,7 +777,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "A new product to add",
-                        "name": "newProduct",
+                        "name": "product",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -676,6 +809,11 @@ const docTemplate = `{
         },
         "/provider/products/{code}": {
             "put": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Modify an existing product",
                 "consumes": [
                     "application/json"
@@ -701,7 +839,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.Product"
+                            "$ref": "#/definitions/dto.ProductUpdate"
                         }
                     }
                 ],
@@ -727,6 +865,11 @@ const docTemplate = `{
                 }
             },
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Remove an existing product: toggle canView flag to false",
                 "consumes": [
                     "application/json"
@@ -771,7 +914,12 @@ const docTemplate = `{
         },
         "/provider/reviews/orders": {
             "get": {
-                "description": "List all reviews",
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Show all reviews",
                 "consumes": [
                     "application/json"
                 ],
@@ -781,7 +929,7 @@ const docTemplate = `{
                 "tags": [
                     "reviews"
                 ],
-                "summary": "Get all reviews",
+                "summary": "List all reviews",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -809,6 +957,42 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.AddressCreate": {
+            "type": "object",
+            "required": [
+                "administrativeArea",
+                "countryCode",
+                "locality",
+                "postalCode",
+                "streetAddress"
+            ],
+            "properties": {
+                "administrativeArea": {
+                    "type": "string",
+                    "example": "Seoul"
+                },
+                "countryCode": {
+                    "type": "string",
+                    "example": "KOR"
+                },
+                "dependentLocality": {
+                    "type": "string",
+                    "example": ""
+                },
+                "locality": {
+                    "type": "string",
+                    "example": "Jongno-gu"
+                },
+                "postalCode": {
+                    "type": "string",
+                    "example": "03154"
+                },
+                "streetAddress": {
+                    "type": "string",
+                    "example": "Jong-ro 1"
+                }
+            }
+        },
         "dto.OrderCreate": {
             "type": "object",
             "required": [
@@ -820,10 +1004,14 @@ const docTemplate = `{
                     "type": "object",
                     "additionalProperties": {
                         "type": "integer"
+                    },
+                    "example": {
+                        "productCode1": 1,
+                        "productCode2": 1
                     }
                 },
                 "user": {
-                    "$ref": "#/definitions/model.User"
+                    "$ref": "#/definitions/dto.UserCreate"
                 }
             }
         },
@@ -837,6 +1025,10 @@ const docTemplate = `{
                     "type": "object",
                     "additionalProperties": {
                         "type": "integer"
+                    },
+                    "example": {
+                        "productCode1": 1,
+                        "productCode2": 1
                     }
                 }
             }
@@ -848,7 +1040,16 @@ const docTemplate = `{
             ],
             "properties": {
                 "status": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "Submitting",
+                        "Submitted",
+                        "Cooking",
+                        "Cooked",
+                        "Delivering",
+                        "Delivered",
+                        "Cancelled"
+                    ]
                 }
             }
         },
@@ -856,6 +1057,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "canOrder",
+                "canView",
                 "code",
                 "limit",
                 "name",
@@ -867,9 +1069,50 @@ const docTemplate = `{
                     "type": "boolean",
                     "example": true
                 },
+                "canView": {
+                    "type": "boolean",
+                    "example": true
+                },
                 "code": {
                     "type": "string",
                     "example": "bc01"
+                },
+                "limit": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Chicken burrito"
+                },
+                "origin": {
+                    "type": "string",
+                    "example": "Mexico"
+                },
+                "price": {
+                    "type": "number",
+                    "example": 9.99
+                }
+            }
+        },
+        "dto.ProductUpdate": {
+            "type": "object",
+            "required": [
+                "canOrder",
+                "canView",
+                "limit",
+                "name",
+                "origin",
+                "price"
+            ],
+            "properties": {
+                "canOrder": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "canView": {
+                    "type": "boolean",
+                    "example": true
                 },
                 "limit": {
                     "type": "integer",
@@ -899,155 +1142,42 @@ const docTemplate = `{
                     "type": "string",
                     "example": "Incredible!"
                 },
-                "productReviews": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.ReviewProduct"
-                    }
-                },
                 "rating": {
                     "type": "number",
                     "maximum": 5,
                     "minimum": 0,
                     "example": 4.5
-                }
-            }
-        },
-        "model.Address": {
-            "type": "object",
-            "required": [
-                "administrativeArea",
-                "countryCode",
-                "locality",
-                "postalCode",
-                "streetAddress"
-            ],
-            "properties": {
-                "administrativeArea": {
-                    "type": "string",
-                    "example": "Seoul"
                 },
-                "countryCode": {
-                    "type": "string",
-                    "example": "KOR"
-                },
-                "dependentLocality": {
-                    "type": "string"
-                },
-                "locality": {
-                    "type": "string",
-                    "example": "Jongno-gu"
-                },
-                "postalCode": {
-                    "type": "string",
-                    "example": "03154"
-                },
-                "streetAddress": {
-                    "type": "string",
-                    "example": "Jong-ro 1"
-                }
-            }
-        },
-        "model.Order": {
-            "type": "object",
-            "properties": {
-                "cart": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "integer"
-                    }
-                },
-                "createdAt": {
-                    "type": "integer"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                },
-                "statusInt": {
-                    "type": "integer"
-                },
-                "user": {
-                    "$ref": "#/definitions/model.User"
-                }
-            }
-        },
-        "model.Product": {
-            "type": "object",
-            "properties": {
-                "canOrder": {
-                    "type": "boolean"
-                },
-                "canView": {
-                    "type": "boolean"
-                },
-                "code": {
-                    "type": "string"
-                },
-                "createdAt": {
-                    "type": "integer"
-                },
-                "limit": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "origin": {
-                    "type": "string"
-                },
-                "price": {
-                    "type": "number"
-                }
-            }
-        },
-        "model.ReviewOrder": {
-            "type": "object",
-            "properties": {
-                "comment": {
-                    "type": "string"
-                },
-                "orderId": {
-                    "type": "string"
-                },
-                "productReviews": {
+                "reviewProducts": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/model.ReviewProduct"
+                        "$ref": "#/definitions/dto.ReviewProductCreate"
                     }
-                },
-                "rating": {
-                    "type": "number"
-                },
-                "username": {
-                    "type": "string"
                 }
             }
         },
-        "model.ReviewProduct": {
+        "dto.ReviewProductCreate": {
             "type": "object",
             "required": [
-                "productCode",
-                "recommend"
+                "isLiked",
+                "productCode"
             ],
             "properties": {
                 "comment": {
                     "type": "string",
                     "example": "Good!"
                 },
+                "isLiked": {
+                    "type": "boolean",
+                    "example": false
+                },
                 "productCode": {
                     "type": "string",
                     "example": "bc01"
-                },
-                "recommend": {
-                    "type": "boolean",
-                    "example": false
                 }
             }
         },
-        "model.User": {
+        "dto.UserCreate": {
             "type": "object",
             "required": [
                 "address",
@@ -1057,7 +1187,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "address": {
-                    "$ref": "#/definitions/model.Address"
+                    "$ref": "#/definitions/dto.AddressCreate"
                 },
                 "email": {
                     "type": "string",
@@ -1073,11 +1203,232 @@ const docTemplate = `{
                     "example": "abc1"
                 }
             }
+        },
+        "model.Order": {
+            "type": "object",
+            "required": [
+                "cart",
+                "status"
+            ],
+            "properties": {
+                "cart": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    },
+                    "example": {
+                        "productCode1": 1,
+                        "productCode2": 1
+                    }
+                },
+                "createdAt": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "Submitting",
+                        "Submitted",
+                        "Cooking",
+                        "Cooked",
+                        "Delivering",
+                        "Delivered",
+                        "Cancelled"
+                    ]
+                },
+                "updatedAt": {
+                    "type": "integer"
+                },
+                "user": {
+                    "$ref": "#/definitions/dto.UserCreate"
+                }
+            }
+        },
+        "model.Product": {
+            "type": "object",
+            "required": [
+                "canOrder",
+                "canView",
+                "code",
+                "limit",
+                "name",
+                "origin",
+                "price"
+            ],
+            "properties": {
+                "canOrder": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "canView": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "code": {
+                    "type": "string",
+                    "example": "bc01"
+                },
+                "createdAt": {
+                    "type": "integer"
+                },
+                "likeCount": {
+                    "type": "integer"
+                },
+                "limit": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Chicken burrito"
+                },
+                "origin": {
+                    "type": "string",
+                    "example": "Mexico"
+                },
+                "price": {
+                    "type": "number",
+                    "example": 9.99
+                },
+                "ratingSum": {
+                    "type": "number"
+                },
+                "reviewCount": {
+                    "type": "integer"
+                },
+                "updatedAt": {
+                    "type": "integer"
+                },
+                "userOrders": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "model.ProductView": {
+            "type": "object",
+            "required": [
+                "canOrder",
+                "canView",
+                "code",
+                "limit",
+                "name",
+                "origin",
+                "price"
+            ],
+            "properties": {
+                "canOrder": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "canView": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "code": {
+                    "type": "string",
+                    "example": "bc01"
+                },
+                "likeCount": {
+                    "type": "integer"
+                },
+                "limit": {
+                    "type": "integer",
+                    "example": 100
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Chicken burrito"
+                },
+                "origin": {
+                    "type": "string",
+                    "example": "Mexico"
+                },
+                "price": {
+                    "type": "number",
+                    "example": 9.99
+                },
+                "ratingSum": {
+                    "type": "number"
+                },
+                "reviewCount": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.ReviewOrder": {
+            "type": "object",
+            "required": [
+                "rating"
+            ],
+            "properties": {
+                "comment": {
+                    "type": "string",
+                    "example": "Incredible!"
+                },
+                "orderID": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "number",
+                    "maximum": 5,
+                    "minimum": 0,
+                    "example": 4.5
+                },
+                "reviewProducts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ReviewProductCreate"
+                    }
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.ReviewProduct": {
+            "type": "object",
+            "required": [
+                "isLiked",
+                "productCode"
+            ],
+            "properties": {
+                "comment": {
+                    "type": "string",
+                    "example": "Good!"
+                },
+                "isLiked": {
+                    "type": "boolean",
+                    "example": false
+                },
+                "productCode": {
+                    "type": "string",
+                    "example": "bc01"
+                }
+            }
+        },
+        "model.Token": {
+            "type": "object",
+            "properties": {
+                "jwtToken": {
+                    "type": "string"
+                },
+                "userRole": {
+                    "type": "string"
+                }
+            }
         }
     },
     "securityDefinitions": {
-        "BasicAuth": {
-            "type": "basic"
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`

@@ -16,12 +16,13 @@ import (
 //	@Tags			products
 //	@Accept			json
 //	@Produce		json
-//	@Param			newProduct	body		dto.ProductCreate	true	"A new product to add"
-//	@Success		200			{object}	model.Product
-//	@Failure		400			{object}	error
-//	@Failure		404			{object}	error
-//	@Failure		500			{object}	error
+//	@Param			product	body		dto.ProductCreate	true	"A new product to add"
+//	@Success		200		{object}	model.Product
+//	@Failure		400		{object}	error
+//	@Failure		404		{object}	error
+//	@Failure		500		{object}	error
 //	@Router			/provider/products [post]
+//	@Security		ApiKeyAuth
 func CreateProduct(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -30,64 +31,69 @@ func CreateProduct(c *gin.Context) {
 	var product dto.ProductCreate
 	err := c.BindJSON(&product)
 	if err != nil {
-		dto.Resp.
-		SetCode(http.StatusBadRequest).
-		SetMessage(http.StatusText(http.StatusBadRequest)).
-		SetData(err.Error()).
-		AbortWithStatusJSON(c)
+		dto.Response.
+			SetCode(http.StatusBadRequest).
+			SetText(http.StatusText(http.StatusBadRequest)).
+			SetData(err.Error()).
+			AbortWithStatusJSON(c)
 		return
 	}
 
 	// Business logic
 	result, err := service.CreateProduct(ctx, product)
 	if err != nil {
-		dto.Resp.
-		SetCode(http.StatusInternalServerError).
-		SetMessage(http.StatusText(http.StatusInternalServerError)).
-		SetData(err.Error()).
-		SendJSON(c)
+		dto.Response.
+			SetCode(http.StatusInternalServerError).
+			SetText(http.StatusText(http.StatusInternalServerError)).
+			SetData(err.Error()).
+			SendJSON(c)
 		return
 	}
 
 	// HTTP response
-	dto.Resp.
-	SetCode(http.StatusCreated).
-	SetMessage(http.StatusText(http.StatusCreated)).
-	SetData(result).
-	SendJSON(c)
+	dto.Response.
+		SetCode(http.StatusCreated).
+		SetText(http.StatusText(http.StatusCreated)).
+		SetData(result).
+		SendJSON(c)
 }
 
-//	@Summary		Get all products
-//	@Description	List all products available to customers
+//	@Summary		List all products
+//	@Description	Show all products available to customers
 //	@Tags			products
 //	@Accept			json
 //	@Produce		json
-//	@Success		200	{array}		model.Product
-//	@Failure		400	{object}	error
-//	@Failure		404	{object}	error
-//	@Failure		500	{object}	error
+//	@Param			sort	query		string	true	"Parameter used to sort products"	Enums(ratings, reorders, likes, time)
+//	@Success		200		{array}		model.ProductView
+//	@Failure		400		{object}	error
+//	@Failure		404		{object}	error
+//	@Failure		500		{object}	error
 //	@Router			/customer/products [get]
-func GetProducts(c *gin.Context) {
+//	@Security		ApiKeyAuth
+func ListProducts(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	// HTTP request
+	sortBy := c.Query("sort")
+
 	// Business logic
-	result, err := service.GetProducts(ctx)
+	result, err := service.ListProducts(ctx, sortBy)
 	if err != nil {
-		dto.Resp.
-		SetCode(http.StatusInternalServerError).
-		SetMessage(http.StatusText(http.StatusInternalServerError)).
-		SetData(err.Error()).
-		SendJSON(c)
+		dto.Response.
+			SetCode(http.StatusInternalServerError).
+			SetText(http.StatusText(http.StatusInternalServerError)).
+			SetData(err.Error()).
+			SendJSON(c)
 		return
 	}
 
 	// HTTP response
-	dto.Resp.
-	SetCode(http.StatusOK).
-	SetMessage(http.StatusText(http.StatusOK)).
-	SetData(result).
-	SendJSON(c)
+	dto.Response.
+		SetCode(http.StatusOK).
+		SetText(http.StatusText(http.StatusOK)).
+		SetData(result).
+		SendJSON(c)
 }
 
 //	@Summary		Get a product
@@ -96,11 +102,12 @@ func GetProducts(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			code	path		string	true	"The product to show"
-//	@Success		200		{object}	model.Product
+//	@Success		200		{object}	model.ProductView
 //	@Failure		400		{object}	error
 //	@Failure		404		{object}	error
 //	@Failure		500		{object}	error
 //	@Router			/customer/products/{code} [get]
+//	@Security		ApiKeyAuth
 func GetProduct(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -111,20 +118,20 @@ func GetProduct(c *gin.Context) {
 	// Business logic
 	result, err := service.GetProduct(ctx, productCode)
 	if err != nil {
-		dto.Resp.
-		SetCode(http.StatusInternalServerError).
-		SetMessage(http.StatusText(http.StatusInternalServerError)).
-		SetData(err.Error()).
-		SendJSON(c)
+		dto.Response.
+			SetCode(http.StatusInternalServerError).
+			SetText(http.StatusText(http.StatusInternalServerError)).
+			SetData(err.Error()).
+			SendJSON(c)
 		return
 	}
 
 	// HTTP response
-	dto.Resp.
-	SetCode(http.StatusOK).
-	SetMessage(http.StatusText(http.StatusOK)).
-	SetData(result).
-	SendJSON(c)
+	dto.Response.
+		SetCode(http.StatusOK).
+		SetText(http.StatusText(http.StatusOK)).
+		SetData(result).
+		SendJSON(c)
 }
 
 //	@Summary		Update a product
@@ -132,13 +139,14 @@ func GetProduct(c *gin.Context) {
 //	@Tags			products
 //	@Accept			json
 //	@Produce		json
-//	@Param			code	path		string			true	"Product code"
-//	@Param			product	body		model.Product	true	"The product to modify"
+//	@Param			code	path		string				true	"Product code"
+//	@Param			product	body		dto.ProductUpdate	true	"The product to modify"
 //	@Success		200		{object}	model.Product
 //	@Failure		400		{object}	error
 //	@Failure		404		{object}	error
 //	@Failure		500		{object}	error
 //	@Router			/provider/products/{code} [put]
+//	@Security		ApiKeyAuth
 func UpdateProduct(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -149,26 +157,31 @@ func UpdateProduct(c *gin.Context) {
 	var product dto.ProductUpdate
 	err := c.BindJSON(&product)
 	if err != nil {
-		panic(err)
+		dto.Response.
+			SetCode(http.StatusBadRequest).
+			SetText(http.StatusText(http.StatusBadRequest)).
+			SetData(err.Error()).
+			AbortWithStatusJSON(c)
+		return
 	}
 
 	// Business logic
 	result, err := service.UpdateProduct(ctx, productCode, product)
 	if err != nil {
-		dto.Resp.
-		SetCode(http.StatusInternalServerError).
-		SetMessage(http.StatusText(http.StatusInternalServerError)).
-		SetData(err.Error()).
-		SendJSON(c)
+		dto.Response.
+			SetCode(http.StatusInternalServerError).
+			SetText(http.StatusText(http.StatusInternalServerError)).
+			SetData(err.Error()).
+			SendJSON(c)
 		return
 	}
 
 	// HTTP response
-	dto.Resp.
-	SetCode(http.StatusOK).
-	SetMessage(http.StatusText(http.StatusOK)).
-	SetData(result).
-	SendJSON(c)
+	dto.Response.
+		SetCode(http.StatusOK).
+		SetText(http.StatusText(http.StatusOK)).
+		SetData(result).
+		SendJSON(c)
 }
 
 //	@Summary		Delete a product
@@ -182,6 +195,7 @@ func UpdateProduct(c *gin.Context) {
 //	@Failure		404		{object}	error
 //	@Failure		500		{object}	error
 //	@Router			/provider/products/{code} [delete]
+//	@Security		ApiKeyAuth
 func DeleteProduct(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -192,18 +206,18 @@ func DeleteProduct(c *gin.Context) {
 	// Business logic
 	result, err := service.DeleteProduct(ctx, productCode)
 	if err != nil {
-		dto.Resp.
-		SetCode(http.StatusInternalServerError).
-		SetMessage(http.StatusText(http.StatusInternalServerError)).
-		SetData(err.Error()).
-		SendJSON(c)
+		dto.Response.
+			SetCode(http.StatusInternalServerError).
+			SetText(http.StatusText(http.StatusInternalServerError)).
+			SetData(err.Error()).
+			SendJSON(c)
 		return
 	}
 
 	// HTTP response
-	dto.Resp.
-	SetCode(http.StatusOK).
-	SetMessage(http.StatusText(http.StatusOK)).
-	SetData(result).
-	SendJSON(c)
+	dto.Response.
+		SetCode(http.StatusOK).
+		SetText(http.StatusText(http.StatusOK)).
+		SetData(result).
+		SendJSON(c)
 }

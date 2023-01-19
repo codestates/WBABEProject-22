@@ -81,6 +81,36 @@ func Error(ctx ...interface{}) {
 	lg.Error("error", zap.String("-", b.String()))
 }
 
+func DPanic(ctx ...interface{}) {
+	var b bytes.Buffer
+	for _, str := range ctx {
+		b.WriteString(str.(string))
+		b.WriteString(" ")
+	}
+
+	lg.DPanic("dpanic", zap.String("-", b.String()))
+}
+
+func Panic(ctx ...interface{}) {
+	var b bytes.Buffer
+	for _, str := range ctx {
+		b.WriteString(str.(string))
+		b.WriteString(" ")
+	}
+
+	lg.Panic("panic", zap.String("-", b.String()))
+}
+
+func Fatal(ctx ...interface{}) {
+	var b bytes.Buffer
+	for _, str := range ctx {
+		b.WriteString(str.(string))
+		b.WriteString(" ")
+	}
+
+	lg.Fatal("fatal", zap.String("-", b.String()))
+}
+
 func getEncoder() zapcore.Encoder {
 	encoderConfig := zap.NewProductionEncoderConfig()
 	encoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
