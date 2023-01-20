@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/joho/godotenv"
 	"golang.org/x/sync/errgroup"
 
 	"oos/config"
@@ -30,27 +31,42 @@ var g errgroup.Group
 //	@host		localhost:8080
 //	@BasePath	/v1
 
-//	@securityDefinitions.basic	BasicAuth
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@in							header
+//	@name						Authorization
 func main() {
 	// Configuration
 	var configFlag = flag.String("config", "./config/config.toml", "TOML file for configuration")
 	flag.Parse()
-	cf := config.GetConfig(*configFlag)
-
-	// Logger
-	if err := logger.InitLogger(cf); err != nil {
-		fmt.Printf("InitLogger failed, err:%v\n", err)
+	cfg, err := config.GetConfig(*configFlag)
+	if err != nil {
+		fmt.Printf("GetConfig failed, err:%v\n", err)
+		logger.Fatal("Error configuration file")
 		return
 	}
 
+	// Logger
+	if err := logger.InitLogger(cfg); err != nil {
+		fmt.Printf("InitLogger failed, err:%v\n", err)
+		logger.Fatal("Error loading logger")
+		return
+	}
+
+	// Environment variables
+	if err := godotenv.Load(); err != nil {
+		fmt.Printf("Loading .env failed, err:%v\n", err)
+        logger.Fatal("Error loading .env file")
+		return
+    }
+
 	// Database
-	db.ConnectDB(cf)
+	db.ConnectDB(cfg)
 
 	// Server: start
 	logger.Debug("Ready server")
 
 	mapi := &http.Server{
-		Addr:           cf.Server.Port,
+		Addr:           cfg.Server.Port,
 		Handler:        router.Engine(),
 		ReadTimeout:    5 * time.Second,
 		WriteTimeout:   10 * time.Second,
@@ -65,6 +81,7 @@ func main() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
+	
 	logger.Warn("Shutdown server")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

@@ -19,8 +19,8 @@ func CreateOrder(ctx context.Context, params dto.OrderCreate) (*mongo.InsertOneR
 	order := model.Order{
 		ID:        primitive.NewObjectID(),
 		CreatedAt: time.Now().UnixMicro(),
+		UpdatedAt: time.Now().UnixMicro(),
 		Status:    "Submitting",
-		StatusInt: model.OrderStatus["Submitting"],
 		User:      params.User,
 		Cart:      params.Cart,
 	}
@@ -29,11 +29,11 @@ func CreateOrder(ctx context.Context, params dto.OrderCreate) (*mongo.InsertOneR
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return result, nil
 }
 
-func GetOrders(ctx context.Context) ([]model.Order, error) {
+func ListOrders(ctx context.Context) ([]model.Order, error) {
 	filter := bson.D{}
 	opts := options.Find().SetSort(bson.M{"createdAt": 1})
 
@@ -46,8 +46,7 @@ func GetOrders(ctx context.Context) ([]model.Order, error) {
 	var orders []model.Order
 	for cursor.Next(ctx) {
 		var order model.Order
-		err = cursor.Decode(&order)
-		if err != nil {
+		if err := cursor.Decode(&order); err != nil {
 			return nil, err
 		}
 		orders = append(orders, order)
@@ -56,13 +55,8 @@ func GetOrders(ctx context.Context) ([]model.Order, error) {
 	return orders, nil
 }
 
-func GetOrdersActive(ctx context.Context, username string) ([]model.Order, error) {
-	filter := bson.M{"$and":
-		bson.A{
-			bson.M{"user.username": username},
-			bson.M{"statusInt": bson.M{"$lt": 5}},
-		},
-	}
+func ListOrdersActive(ctx context.Context, username string) ([]model.Order, error) {
+	filter := bson.M{"user.username": username}
 	opts := options.Find().SetSort(bson.M{"createdAt": 1})
 
 	cursor, err := db.OrderCollection.Find(ctx, filter, opts)
@@ -74,23 +68,19 @@ func GetOrdersActive(ctx context.Context, username string) ([]model.Order, error
 	var orders []model.Order
 	for cursor.Next(ctx) {
 		var order model.Order
-		err = cursor.Decode(&order)
-		if err != nil {
+		if err = cursor.Decode(&order); err != nil {
 			return nil, err
 		}
-		orders = append(orders, order)
+		if model.OrderStatus[order.Status] < model.OrderStatus["Delivered"] {
+			orders = append(orders, order)
+		}
 	}
 
 	return orders, nil
 }
 
-func GetOrdersHistory(ctx context.Context, username string) ([]model.Order, error) {
-	filter := bson.M{"$and":
-		bson.A{
-			bson.M{"user.username": username},
-			bson.M{"statusInt": bson.M{"$gte": 5}},
-		},
-	}
+func ListOrdersHistory(ctx context.Context, username string) ([]model.Order, error) {
+	filter := bson.M{"user.username": username}
 	opts := options.Find().SetSort(bson.M{"createdAt": 1})
 
 	cursor, err := db.OrderCollection.Find(ctx, filter, opts)
@@ -102,46 +92,48 @@ func GetOrdersHistory(ctx context.Context, username string) ([]model.Order, erro
 	var orders []model.Order
 	for cursor.Next(ctx) {
 		var order model.Order
-		err = cursor.Decode(&order)
-		if err != nil {
+		if err = cursor.Decode(&order); err != nil {
 			return nil, err
 		}
-		orders = append(orders, order)
+		if model.OrderStatus[order.Status] >= model.OrderStatus["Delivered"] {
+			orders = append(orders, order)
+		}
 	}
 
 	return orders, nil
 }
 
-func GetOrder(ctx context.Context, orderId string) (*model.Order, error) {
-	orderIdObject, _ := primitive.ObjectIDFromHex(orderId)
-	filter := bson.M{"_id": orderIdObject}
+func GetOrder(ctx context.Context, orderID string) (*model.Order, error) {
+	orderIDObject, _ := primitive.ObjectIDFromHex(orderID)
+	filter := bson.M{"_id": orderIDObject}
 
 	var order model.Order
-	err := db.OrderCollection.FindOne(ctx, filter).Decode(&order)
-	if err != nil {
+	if err := db.OrderCollection.FindOne(ctx, filter).Decode(&order); err != nil {
 		return nil, err
 	}
 
 	return &order, nil
 }
 
-func GetOrderStatus(ctx context.Context, orderId string) (*string, error) {
-	orderIdObject, _ := primitive.ObjectIDFromHex(orderId)
-	filter := bson.M{"_id": orderIdObject}
+func GetOrderStatus(ctx context.Context, orderID string) (*string, error) {
+	orderIDObject, _ := primitive.ObjectIDFromHex(orderID)
+	filter := bson.M{"_id": orderIDObject}
 
 	var order model.Order
-	err := db.OrderCollection.FindOne(ctx, filter).Decode(&order)
-	if err != nil {
+	if err := db.OrderCollection.FindOne(ctx, filter).Decode(&order); err != nil {
 		return nil, err
 	}
 
 	return &order.Status, nil
 }
 
-func UpdateOrderStatus(ctx context.Context, orderId string, params dto.OrderUpdateStatus) (*mongo.UpdateResult, error) {
-	orderIdObject, _ := primitive.ObjectIDFromHex(orderId)
-	filter := bson.M{"_id": orderIdObject}
-	update := bson.M{"$set": bson.M{"status": params.Status, "statusInt": model.OrderStatus[params.Status]}}
+func UpdateOrderStatus(ctx context.Context, orderID string, params dto.OrderUpdateStatus) (*mongo.UpdateResult, error) {
+	orderIDObject, _ := primitive.ObjectIDFromHex(orderID)
+	filter := bson.M{"_id": orderIDObject}
+	update := bson.M{"$set": bson.M{
+		"status":    params.Status,
+		"updatedAt": time.Now().UnixMicro(),
+	}}
 
 	result, err := db.OrderCollection.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -150,12 +142,12 @@ func UpdateOrderStatus(ctx context.Context, orderId string, params dto.OrderUpda
 	if result.MatchedCount != 1 {
 		return nil, errors.New("no match to update")
 	}
-	
+
 	return result, nil
 }
 
-func UpdateOrderItems(ctx context.Context, orderId string, params dto.OrderUpdateCart) (*mongo.UpdateResult, error) {
-	orderStatus, err := GetOrderStatus(ctx, orderId)
+func UpdateOrderItems(ctx context.Context, orderID string, params dto.OrderUpdateCart) (*mongo.UpdateResult, error) {
+	orderStatus, err := GetOrderStatus(ctx, orderID)
 	if err != nil {
 		return nil, err
 	}
@@ -163,12 +155,11 @@ func UpdateOrderItems(ctx context.Context, orderId string, params dto.OrderUpdat
 		return nil, errors.New("order change not allowed at this stage")
 	}
 
-	orderIdObject, _ := primitive.ObjectIDFromHex(orderId)
-	filter := bson.M{"_id": orderIdObject}
+	orderIDObject, _ := primitive.ObjectIDFromHex(orderID)
+	filter := bson.M{"_id": orderIDObject}
 
 	var order model.Order
-	err = db.OrderCollection.FindOne(ctx, filter).Decode(&order)
-	if err != nil {
+	if err = db.OrderCollection.FindOne(ctx, filter).Decode(&order); err != nil {
 		return nil, err
 	}
 
@@ -176,7 +167,10 @@ func UpdateOrderItems(ctx context.Context, orderId string, params dto.OrderUpdat
 		order.Cart[productCode] = quantity
 	}
 
-	update := bson.M{"$set": bson.M{"cart": order.Cart}}
+	update := bson.M{"$set": bson.M{
+		"cart":      order.Cart,
+		"updatedAt": time.Now().UnixMicro(),
+	}}
 
 	result, err := db.OrderCollection.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -189,8 +183,8 @@ func UpdateOrderItems(ctx context.Context, orderId string, params dto.OrderUpdat
 	return result, nil
 }
 
-func DeleteOrderItems(ctx context.Context, orderId string, params []string) (*mongo.UpdateResult, error) {
-	orderStatus, err := GetOrderStatus(ctx, orderId)
+func DeleteOrderItems(ctx context.Context, orderID string, params []string) (*mongo.UpdateResult, error) {
+	orderStatus, err := GetOrderStatus(ctx, orderID)
 	if err != nil {
 		return nil, err
 	}
@@ -198,12 +192,11 @@ func DeleteOrderItems(ctx context.Context, orderId string, params []string) (*mo
 		return nil, errors.New("order change not allowed at this stage")
 	}
 
-	orderIdObject, _ := primitive.ObjectIDFromHex(orderId)
-	filter := bson.M{"_id": orderIdObject}
+	orderIDObject, _ := primitive.ObjectIDFromHex(orderID)
+	filter := bson.M{"_id": orderIDObject}
 
 	var order model.Order
-	err = db.OrderCollection.FindOne(ctx, filter).Decode(&order)
-	if err != nil {
+	if err = db.OrderCollection.FindOne(ctx, filter).Decode(&order); err != nil {
 		return nil, err
 	}
 
@@ -211,7 +204,10 @@ func DeleteOrderItems(ctx context.Context, orderId string, params []string) (*mo
 		delete(order.Cart, productCode)
 	}
 
-	update := bson.M{"$set": bson.M{"cart": order.Cart}}
+	update := bson.M{"$set": bson.M{
+		"cart":      order.Cart,
+		"updatedAt": time.Now().UnixMicro(),
+	}}
 
 	result, err := db.OrderCollection.UpdateOne(ctx, filter, update)
 	if err != nil {

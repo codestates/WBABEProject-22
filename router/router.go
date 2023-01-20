@@ -1,42 +1,14 @@
 package router
 
 import (
-	"fmt"
-
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
 	_ "oos/docs"
 	"oos/logger"
+	"oos/middleware"
 )
-
-func CORS() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, X-Forwarded-For, Authorization, accept, origin, Cache-Control, X-Requested-With")
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204)
-			return
-		}
-		c.Next()
-	}
-}
-
-func liteAuth() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		if c == nil {
-			c.Abort()
-			return
-		}
-		auth := c.GetHeader("Authorization")
-		// ADD AUTHENTICATION FUNCTION BELOW:
-		fmt.Println("Authorization-word ", auth)
-		c.Next() 
-	}
-}
 
 func Engine() *gin.Engine {
 	gin.SetMode(gin.DebugMode)
@@ -51,11 +23,11 @@ func Engine() *gin.Engine {
 	// Custom middleware
 	e.Use(logger.GinLogger())
 	e.Use(logger.GinRecovery(true))
-	e.Use(CORS())
-	e.Use(liteAuth())
+	e.Use(middleware.CORS())
 
 	// Route groups
 	v1 := e.Group("/v1")
+	addAccountRoutes(v1)
 	addCustomerRoutes(v1)
 	addProviderRoutes(v1)
 

@@ -1,13 +1,43 @@
 basePath: /v1
 definitions:
+  dto.AddressCreate:
+    properties:
+      administrativeArea:
+        example: Seoul
+        type: string
+      countryCode:
+        example: KOR
+        type: string
+      dependentLocality:
+        example: ""
+        type: string
+      locality:
+        example: Jongno-gu
+        type: string
+      postalCode:
+        example: "03154"
+        type: string
+      streetAddress:
+        example: Jong-ro 1
+        type: string
+    required:
+    - administrativeArea
+    - countryCode
+    - locality
+    - postalCode
+    - streetAddress
+    type: object
   dto.OrderCreate:
     properties:
       cart:
         additionalProperties:
           type: integer
+        example:
+          productCode1: 1
+          productCode2: 1
         type: object
       user:
-        $ref: '#/definitions/model.User'
+        $ref: '#/definitions/dto.UserCreate'
     required:
     - cart
     - user
@@ -17,6 +47,9 @@ definitions:
       cart:
         additionalProperties:
           type: integer
+        example:
+          productCode1: 1
+          productCode2: 1
         type: object
     required:
     - cart
@@ -24,6 +57,14 @@ definitions:
   dto.OrderUpdateStatus:
     properties:
       status:
+        enum:
+        - Submitting
+        - Submitted
+        - Cooking
+        - Cooked
+        - Delivering
+        - Delivered
+        - Cancelled
         type: string
     required:
     - status
@@ -31,6 +72,9 @@ definitions:
   dto.ProductCreate:
     properties:
       canOrder:
+        example: true
+        type: boolean
+      canView:
         example: true
         type: boolean
       code:
@@ -50,7 +94,36 @@ definitions:
         type: number
     required:
     - canOrder
+    - canView
     - code
+    - limit
+    - name
+    - origin
+    - price
+    type: object
+  dto.ProductUpdate:
+    properties:
+      canOrder:
+        example: true
+        type: boolean
+      canView:
+        example: true
+        type: boolean
+      limit:
+        example: 100
+        type: integer
+      name:
+        example: Chicken burrito
+        type: string
+      origin:
+        example: Mexico
+        type: string
+      price:
+        example: 9.99
+        type: number
+    required:
+    - canOrder
+    - canView
     - limit
     - name
     - origin
@@ -61,114 +134,37 @@ definitions:
       comment:
         example: Incredible!
         type: string
-      productReviews:
-        items:
-          $ref: '#/definitions/model.ReviewProduct'
-        type: array
       rating:
         example: 4.5
         maximum: 5
         minimum: 0
         type: number
+      reviewProducts:
+        items:
+          $ref: '#/definitions/dto.ReviewProductCreate'
+        type: array
     required:
     - rating
     type: object
-  model.Address:
-    properties:
-      administrativeArea:
-        example: Seoul
-        type: string
-      countryCode:
-        example: KOR
-        type: string
-      dependentLocality:
-        type: string
-      locality:
-        example: Jongno-gu
-        type: string
-      postalCode:
-        example: "03154"
-        type: string
-      streetAddress:
-        example: Jong-ro 1
-        type: string
-    required:
-    - administrativeArea
-    - countryCode
-    - locality
-    - postalCode
-    - streetAddress
-    type: object
-  model.Order:
-    properties:
-      cart:
-        additionalProperties:
-          type: integer
-        type: object
-      createdAt:
-        type: integer
-      id:
-        type: string
-      status:
-        type: string
-      statusInt:
-        type: integer
-      user:
-        $ref: '#/definitions/model.User'
-    type: object
-  model.Product:
-    properties:
-      canOrder:
-        type: boolean
-      canView:
-        type: boolean
-      code:
-        type: string
-      createdAt:
-        type: integer
-      limit:
-        type: integer
-      name:
-        type: string
-      origin:
-        type: string
-      price:
-        type: number
-    type: object
-  model.ReviewOrder:
-    properties:
-      comment:
-        type: string
-      orderId:
-        type: string
-      productReviews:
-        items:
-          $ref: '#/definitions/model.ReviewProduct'
-        type: array
-      rating:
-        type: number
-      username:
-        type: string
-    type: object
-  model.ReviewProduct:
+  dto.ReviewProductCreate:
     properties:
       comment:
         example: Good!
         type: string
+      isLiked:
+        example: false
+        type: boolean
       productCode:
         example: bc01
         type: string
-      recommend:
-        example: false
-        type: boolean
     required:
+    - isLiked
     - productCode
-    - recommend
     type: object
-  model.User:
+  dto.UserCreate:
     properties:
       address:
-        $ref: '#/definitions/model.Address'
+        $ref: '#/definitions/dto.AddressCreate'
       email:
         example: abc1@gmail.com
         type: string
@@ -185,6 +181,164 @@ definitions:
     - phone
     - username
     type: object
+  model.Order:
+    properties:
+      cart:
+        additionalProperties:
+          type: integer
+        example:
+          productCode1: 1
+          productCode2: 1
+        type: object
+      createdAt:
+        type: integer
+      id:
+        type: string
+      status:
+        enum:
+        - Submitting
+        - Submitted
+        - Cooking
+        - Cooked
+        - Delivering
+        - Delivered
+        - Cancelled
+        type: string
+      updatedAt:
+        type: integer
+      user:
+        $ref: '#/definitions/dto.UserCreate'
+    required:
+    - cart
+    - status
+    type: object
+  model.Product:
+    properties:
+      canOrder:
+        example: true
+        type: boolean
+      canView:
+        example: true
+        type: boolean
+      code:
+        example: bc01
+        type: string
+      createdAt:
+        type: integer
+      likeCount:
+        type: integer
+      limit:
+        example: 100
+        type: integer
+      name:
+        example: Chicken burrito
+        type: string
+      origin:
+        example: Mexico
+        type: string
+      price:
+        example: 9.99
+        type: number
+      ratingSum:
+        type: number
+      reviewCount:
+        type: integer
+      updatedAt:
+        type: integer
+      userOrders:
+        additionalProperties:
+          type: integer
+        type: object
+    required:
+    - canOrder
+    - canView
+    - code
+    - limit
+    - name
+    - origin
+    - price
+    type: object
+  model.ProductView:
+    properties:
+      canOrder:
+        example: true
+        type: boolean
+      canView:
+        example: true
+        type: boolean
+      code:
+        example: bc01
+        type: string
+      likeCount:
+        type: integer
+      limit:
+        example: 100
+        type: integer
+      name:
+        example: Chicken burrito
+        type: string
+      origin:
+        example: Mexico
+        type: string
+      price:
+        example: 9.99
+        type: number
+      ratingSum:
+        type: number
+      reviewCount:
+        type: integer
+    required:
+    - canOrder
+    - canView
+    - code
+    - limit
+    - name
+    - origin
+    - price
+    type: object
+  model.ReviewOrder:
+    properties:
+      comment:
+        example: Incredible!
+        type: string
+      orderID:
+        type: string
+      rating:
+        example: 4.5
+        maximum: 5
+        minimum: 0
+        type: number
+      reviewProducts:
+        items:
+          $ref: '#/definitions/dto.ReviewProductCreate'
+        type: array
+      username:
+        type: string
+    required:
+    - rating
+    type: object
+  model.ReviewProduct:
+    properties:
+      comment:
+        example: Good!
+        type: string
+      isLiked:
+        example: false
+        type: boolean
+      productCode:
+        example: bc01
+        type: string
+    required:
+    - isLiked
+    - productCode
+    type: object
+  model.Token:
+    properties:
+      jwtToken:
+        type: string
+      userRole:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact: {}
@@ -195,6 +349,39 @@ info:
   title: Online ordering system
   version: "1.0"
 paths:
+  /account/login/{role}:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate to get access token
+      parameters:
+      - description: User role (permission or scope)
+        enum:
+        - customer
+        - provider
+        in: path
+        name: role
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Token'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: JWT login
+      tags:
+      - accounts
   /customer/{username}/orders/active:
     get:
       consumes:
@@ -224,7 +411,9 @@ paths:
         "500":
           description: Internal Server Error
           schema: {}
-      summary: Get all active orders
+      security:
+      - ApiKeyAuth: []
+      summary: List all active orders
       tags:
       - orders
   /customer/{username}/orders/history:
@@ -256,7 +445,9 @@ paths:
         "500":
           description: Internal Server Error
           schema: {}
-      summary: Get all past orders
+      security:
+      - ApiKeyAuth: []
+      summary: List all past orders
       tags:
       - orders
   /customer/orders:
@@ -287,6 +478,8 @@ paths:
         "500":
           description: Internal Server Error
           schema: {}
+      security:
+      - ApiKeyAuth: []
       summary: Create a new order
       tags:
       - orders
@@ -317,6 +510,8 @@ paths:
         "500":
           description: Internal Server Error
           schema: {}
+      security:
+      - ApiKeyAuth: []
       summary: Get an order
       tags:
       - orders
@@ -355,6 +550,8 @@ paths:
         "500":
           description: Internal Server Error
           schema: {}
+      security:
+      - ApiKeyAuth: []
       summary: Delete order items
       tags:
       - orders
@@ -390,6 +587,8 @@ paths:
         "500":
           description: Internal Server Error
           schema: {}
+      security:
+      - ApiKeyAuth: []
       summary: Update order items
       tags:
       - orders
@@ -420,6 +619,8 @@ paths:
         "500":
           description: Internal Server Error
           schema: {}
+      security:
+      - ApiKeyAuth: []
       summary: Get order status
       tags:
       - orders
@@ -427,7 +628,18 @@ paths:
     get:
       consumes:
       - application/json
-      description: List all products available to customers
+      description: Show all products available to customers
+      parameters:
+      - description: Parameter used to sort products
+        enum:
+        - ratings
+        - reorders
+        - likes
+        - time
+        in: query
+        name: sort
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -435,7 +647,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/model.Product'
+              $ref: '#/definitions/model.ProductView'
             type: array
         "400":
           description: Bad Request
@@ -446,7 +658,9 @@ paths:
         "500":
           description: Internal Server Error
           schema: {}
-      summary: Get all products
+      security:
+      - ApiKeyAuth: []
+      summary: List all products
       tags:
       - products
   /customer/products/{code}:
@@ -466,7 +680,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.Product'
+            $ref: '#/definitions/model.ProductView'
         "400":
           description: Bad Request
           schema: {}
@@ -476,6 +690,8 @@ paths:
         "500":
           description: Internal Server Error
           schema: {}
+      security:
+      - ApiKeyAuth: []
       summary: Get a product
       tags:
       - products
@@ -512,6 +728,8 @@ paths:
         "500":
           description: Internal Server Error
           schema: {}
+      security:
+      - ApiKeyAuth: []
       summary: Create a new review
       tags:
       - reviews
@@ -519,7 +737,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Show a review of a product
+      description: Show all reviews of a product
       parameters:
       - description: Product code
         in: path
@@ -544,14 +762,16 @@ paths:
         "500":
           description: Internal Server Error
           schema: {}
-      summary: Get a review of a product
+      security:
+      - ApiKeyAuth: []
+      summary: List all reviews of a product
       tags:
       - reviews
   /provider/orders:
     get:
       consumes:
       - application/json
-      description: List all orders
+      description: Show all orders
       produces:
       - application/json
       responses:
@@ -570,7 +790,9 @@ paths:
         "500":
           description: Internal Server Error
           schema: {}
-      summary: Get all orders
+      security:
+      - ApiKeyAuth: []
+      summary: List all orders
       tags:
       - orders
   /provider/orders/{id}/status:
@@ -606,6 +828,8 @@ paths:
         "500":
           description: Internal Server Error
           schema: {}
+      security:
+      - ApiKeyAuth: []
       summary: Update order status
       tags:
       - orders
@@ -617,7 +841,7 @@ paths:
       parameters:
       - description: A new product to add
         in: body
-        name: newProduct
+        name: product
         required: true
         schema:
           $ref: '#/definitions/dto.ProductCreate'
@@ -637,6 +861,8 @@ paths:
         "500":
           description: Internal Server Error
           schema: {}
+      security:
+      - ApiKeyAuth: []
       summary: Create a new product
       tags:
       - products
@@ -667,6 +893,8 @@ paths:
         "500":
           description: Internal Server Error
           schema: {}
+      security:
+      - ApiKeyAuth: []
       summary: Delete a product
       tags:
       - products
@@ -685,7 +913,7 @@ paths:
         name: product
         required: true
         schema:
-          $ref: '#/definitions/model.Product'
+          $ref: '#/definitions/dto.ProductUpdate'
       produces:
       - application/json
       responses:
@@ -702,6 +930,8 @@ paths:
         "500":
           description: Internal Server Error
           schema: {}
+      security:
+      - ApiKeyAuth: []
       summary: Update a product
       tags:
       - products
@@ -709,7 +939,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: List all reviews
+      description: Show all reviews
       produces:
       - application/json
       responses:
@@ -728,10 +958,14 @@ paths:
         "500":
           description: Internal Server Error
           schema: {}
-      summary: Get all reviews
+      security:
+      - ApiKeyAuth: []
+      summary: List all reviews
       tags:
       - reviews
 securityDefinitions:
-  BasicAuth:
-    type: basic
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
