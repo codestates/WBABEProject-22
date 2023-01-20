@@ -33,6 +33,10 @@ func CreateProduct(ctx context.Context, params dto.ProductCreate) (*mongo.Insert
 
 	return result, nil
 }
+/* [코드리뷰]
+ * Model - Service - Controller 패턴이 정확하게 잘 구현되어 있습니다.
+ * function의 parameter 또한 필요한 속성들을 담아 struct로 잘 표현해주셨습니다.
+ */
 
 func GetProducts(ctx context.Context) ([]model.Product, error) {
 	filter := bson.D{}

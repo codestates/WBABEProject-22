@@ -223,3 +223,10 @@ func DeleteOrderItems(ctx context.Context, orderId string, params []string) (*mo
 
 	return result, nil
 }
+
+/* [코드리뷰] 
+ * 에러 상황에 대한 간단한 메세지 들이 많이 발생하고 있네요.
+ * 해당 값을, 하나의 map 함수의 key, value로 관리하는 것을 추천드립니다.
+ * 대신 mapping되는 string 타입의 key 값이 상황이 잘 설명되는 
+ * naming convention이 있으면 코드 관리가 보다 편리해질 것으로 보여집니다.
+/*

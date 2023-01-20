@@ -80,6 +80,13 @@ func Error(ctx ...interface{}) {
 
 	lg.Error("error", zap.String("-", b.String()))
 }
+/* [코드리뷰]
+ * 로그 레벨을 잘 나누어 주셨습니다. 
+ * 이것은 개발자의 스타일이여서 꼭 필요한 comment는 아니지만 
+ * 기본적으로 해당 log package에서 제공되는 log level을 모두 구현해주어도 좋을 것 같습니다.
+ * zap은 Debug, Info, Warning, Error, DPanic, Panic, Fatal 총 7가지 디버깅 레벨을 제공해줍니다.
+ * 사용되지 않더라도, 해당 레벨들을 미리 구현해놓으면 이후에 필요한 상황에 새롭게 추가하는 번거로움이 적어질 것 같습니다.
+ */
 
 func getEncoder() zapcore.Encoder {
 	encoderConfig := zap.NewProductionEncoderConfig()
